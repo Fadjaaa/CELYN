@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Happy Birthday</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#fff6f7;
+    --bg-2:#fbdce4;
+    --bg-3:#f4bfcd;
+    --ink:#4a2f38;
+    --muted:#b98a97;
+    --rose:#c65d7b;
+    --rose-dark:#a3455f;
+    --card:#fffaf9;
+    --shadow: rgba(90, 40, 60, 0.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    font-family:'Jost', sans-serif;
+    color:var(--ink);
+    -webkit-tap-highlight-color: transparent;
+  }
+  body{
+    background: radial-gradient(circle at 28% 18%, var(--bg-1), var(--bg-2) 45%, var(--bg-3) 100%);
+    display:flex; align-items:center; justify-content:center;
+    min-height:100vh; overflow:hidden;
+  }
+  #stage-wrap{
+    position:relative;
+    width:100%;
+    max-width:460px;
+    height:100vh;
+    max-height:960px;
+    overflow:hidden;
+    background: radial-gradient(circle at 28% 18%, var(--bg-1), var(--bg-2) 45%, var(--bg-3) 100%);
+    box-shadow: 0 30px 80px var(--shadow);
+  }
+  @media (min-width:520px){
+    #stage-wrap{ border-radius:28px; height:92vh; }
+  }
+
+  .scene{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center;
+    padding: 48px 32px;
+    opacity:0; pointer-events:none;
+    transform: translateY(14px);
+    transition: opacity .6s ease, transform .6s ease;
+  }
+  .scene.active{ opacity:1; pointer-events:auto; transform:translateY(0); }
+  .scene.leaving{ opacity:0; transform:translateY(-14px); }
+
+  .eyebrow{
+    font-size:11px; letter-spacing:4px; text-transform:uppercase;
+    color:var(--muted); margin-bottom:14px; font-weight:500;
+  }
+  .display{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:500;
+    line-height:1.08;
+    color:var(--ink);
+  }
+  .sub{
+    font-size:14px; color:var(--muted); margin-top:14px; line-height:1.6;
+    max-width:300px;
+  }
+  .hint{
+    font-size:10.5px; letter-spacing:2.5px; text-transform:uppercase;
+    color:var(--muted); margin-top:26px; opacity:.8;
+  }
+
+  /* ---------- Gift scene ---------- */
+  #scene-gift .display{ font-size:34px; margin-top:8px; }
+  .gift-icon{
+    width:150px; height:150px; cursor:pointer;
+    filter: drop-shadow(0 14px 22px rgba(198,93,123,.35));
+    transition: transform .25s ease;
+  }
+  .gift-icon:active{ transform: scale(.94); }
+  .gift-lid{ transform-origin: 50% 78px; transition: transform .55s cubic-bezier(.4,1.6,.5,1), opacity .4s ease; }
+  .gift-icon.opened .gift-lid{ transform: translateY(-30px) rotate(-18deg); opacity:0; }
+  .gift-icon.opened .gift-glow{ opacity:1; transform:scale(1.4); }
+  .gift-glow{
+    opacity:0; transition: opacity .5s ease, transform .5s ease;
+    transform-origin:center;
+  }
+
+  /* ---------- Greeting scene ---------- */
+  #scene-greeting .display{ font-size:38px; }
+  #scene-greeting .display span{ display:block; color:var(--rose); }
+  .heart-btn{
+    margin-top:26px; width:58px; height:58px; border-radius:50%;
+    background:var(--rose); border:none; color:#fff; font-size:22px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    box-shadow: 0 10px 24px rgba(198,93,123,.45);
+    transition: transform .2s ease;
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  .heart-btn:active{ transform:scale(.9); }
+  @keyframes pulse{
+    0%,100%{ box-shadow:0 10px 24px rgba(198,93,123,.45); }
+    50%{ box-shadow:0 10px 30px rgba(198,93,123,.7); }
+  }
+
+  /* ---------- Candle scene ---------- */
+  .cake{ cursor:pointer; width:180px; margin-top:6px; }
+  .flame{ transform-origin:50% 100%; animation: flicker 1.6s ease-in-out infinite; }
+  @keyframes flicker{
+    0%,100%{ transform:scale(1) rotate(-2deg); }
+    50%{ transform:scale(1.08) rotate(2deg); }
+  }
+  .cake.blown .flame{ animation:none; opacity:0; transform:scale(.2) translateY(6px); transition:opacity .4s ease, transform .4s ease; }
+  .smoke{ opacity:0; }
+  .cake.blown .smoke{ animation: smoke-rise 1.1s ease-out forwards; }
+  @keyframes smoke-rise{
+    0%{ opacity:.6; transform:translateY(0) scale(.6); }
+    100%{ opacity:0; transform:translateY(-26px) scale(1.4); }
+  }
+
+  /* ---------- Wish scene ---------- */
+  .wish-text{
+    font-size:30px; transition: opacity .7s ease, filter .7s ease;
+  }
+  .wish-text.blur{ opacity:0; filter: blur(8px); }
+
+  /* ---------- Memories scene ---------- */
+  #scene-memories{ justify-content:flex-start; padding-top:64px; }
+  .memories-track{
+    width:100%; max-width:320px;
+    display:flex; flex-direction:column; gap:22px;
+    margin-top:26px; max-height:56vh; overflow-y:auto; padding-bottom:12px;
+  }
+  .polaroid{
+    background:#fff; border-radius:4px; padding:14px 14px 34px;
+    box-shadow: 0 16px 30px rgba(90,40,60,.16);
+    transform: rotate(var(--tilt,-2deg));
+    position:relative;
+  }
+  .polaroid:nth-child(even){ --tilt: 2deg; align-self:flex-end; }
+  .polaroid-photo{
+    width:100%; aspect-ratio:1/1; border-radius:2px;
+    background: linear-gradient(135deg,#f6c9d3,#eaa9ba);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-family:'Jost'; font-weight:600; letter-spacing:3px; font-size:13px;
+    cursor:pointer; overflow:hidden; position:relative;
+  }
+  .polaroid-photo img{ width:100%; height:100%; object-fit:cover; }
+  .polaroid-photo input{ position:absolute; inset:0; opacity:0; cursor:pointer; }
+  .polaroid-caption{
+    position:absolute; bottom:8px; left:0; right:0; text-align:center;
+    font-size:10px; letter-spacing:2px; color:var(--muted);
+  }
+  .next-btn{
+    margin-top:22px; padding:12px 34px; border-radius:30px; border:none;
+    background:var(--rose); color:#fff; font-family:'Jost'; letter-spacing:1.5px;
+    font-size:12px; text-transform:uppercase; cursor:pointer;
+    box-shadow:0 12px 24px rgba(198,93,123,.4);
+  }
+
+  /* ---------- Letter scene ---------- */
+  .letter-label{ font-size:11px; letter-spacing:4px; text-transform:uppercase; color:var(--muted); margin-bottom:16px; }
+  .letter-card{
+    background:var(--card); border-radius:14px; padding:26px 22px;
+    width:100%; max-width:320px; min-height:170px;
+    box-shadow:0 20px 40px rgba(90,40,60,.15);
+    text-align:left; display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .letter-body{ font-size:15px; line-height:1.7; color:var(--ink); min-height:96px; }
+  .letter-body .cursor{ display:inline-block; width:1px; background:var(--ink); margin-left:1px; animation: blink 1s step-end infinite; }
+  @keyframes blink{ 50%{ opacity:0; } }
+  .letter-sign{ font-family:'Cormorant Garamond', serif; font-style:italic; font-size:16px; color:var(--muted); text-align:right; margin-top:14px; }
+  .restart-btn{
+    margin-top:24px; padding:12px 30px; border-radius:30px;
+    border:1.5px solid var(--rose); background:transparent; color:var(--rose-dark);
+    font-family:'Jost'; letter-spacing:1.5px; font-size:12px; text-transform:uppercase; cursor:pointer;
+    transition: background .2s ease, color .2s ease;
+  }
+  .restart-btn:active{ background:var(--rose); color:#fff; }
+
+  /* ---------- Confetti ---------- */
+  .confetti-piece{
+    position:absolute; top:-20px; width:8px; height:14px; opacity:.9;
+    border-radius:1px; will-change:transform;
+    animation: fall linear forwards;
+  }
+  @keyframes fall{
+    to{ transform: translateY(115vh) rotate(540deg); opacity:.2; }
+  }
+
+  /* ---------- Music control ---------- */
+  #music-toggle{
+    position:absolute; bottom:22px; right:20px; z-index:30;
+    width:46px; height:46px; border-radius:50%;
+    background:rgba(255,255,255,.75); backdrop-filter:blur(6px);
+    border:none; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; box-shadow:0 8px 18px rgba(90,40,60,.2);
+    color:var(--rose-dark);
+  }
+  #music-settings-toggle{
+    position:absolute; bottom:22px; left:20px; z-index:30;
+    width:36px; height:36px; border-radius:50%;
+    background:rgba(255,255,255,.65); backdrop-filter:blur(6px);
+    border:none; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; color:var(--rose-dark); font-size:15px;
+  }
+  #music-panel{
+    position:absolute; left:16px; right:16px; bottom:74px; z-index:31;
+    background:#fffaf9; border-radius:16px; padding:18px;
+    box-shadow:0 18px 40px rgba(90,40,60,.25);
+    transform: translateY(12px) scale(.97); opacity:0; pointer-events:none;
+    transition: all .25s ease;
+    text-align:left;
+  }
+  #music-panel.open{ transform:translateY(0) scale(1); opacity:1; pointer-events:auto; }
+  #music-panel h4{ margin:0 0 10px; font-family:'Cormorant Garamond',serif; font-size:19px; font-weight:600; }
+  #music-panel label{ display:block; font-size:11px; letter-spacing:1px; color:var(--muted); margin:12px 0 5px; text-transform:uppercase; }
+  #music-panel input[type="file"]{ font-size:12px; width:100%; }
+  #music-panel input[type="range"]{ width:100%; accent-color:var(--rose); }
+  #music-panel .song-name{ font-size:12px; color:var(--ink); margin-top:6px; word-break:break-all; }
+  #music-panel .row{ display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
+  #music-panel .row span{ font-size:12px; }
+  .switch{ position:relative; width:38px; height:22px; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .switch .track{ position:absolute; inset:0; background:#e6c3cc; border-radius:20px; transition:.2s; cursor:pointer; }
+  .switch .track:before{ content:""; position:absolute; width:16px; height:16px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s; }
+  .switch input:checked + .track{ background:var(--rose); }
+  .switch input:checked + .track:before{ transform:translateX(16px); }
+  #music-panel .close-panel{
+    margin-top:16px; width:100%; text-align:center; background:var(--rose);
+    color:#fff; border:none; padding:9px; border-radius:20px; font-size:12px;
+    letter-spacing:1px; text-transform:uppercase; cursor:pointer;
+  }
+
+  .footer-tag{
+    position:absolute; bottom:8px; left:0; right:0; text-align:center;
+    font-size:9px; letter-spacing:2px; color:var(--muted); opacity:.55;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage-wrap">
+
+  <!-- Scene 1: Gift -->
+  <section class="scene active" id="scene-gift">
+    <div class="eyebrow">for Cecel</div>
+    <div class="display">let's see what's inside</div>
+    <svg class="gift-icon" id="gift-icon" viewBox="0 0 200 200">
+      <circle class="gift-glow" cx="100" cy="110" r="70" fill="#f7bccb" opacity="0"></circle>
+      <rect x="55" y="95" width="90" height="72" rx="4" fill="#c65d7b"></rect>
+      <rect x="90" y="95" width="20" height="72" fill="#f6dbe1"></rect>
+      <g class="gift-lid">
+        <rect x="48" y="70" width="104" height="28" rx="6" fill="#a3455f"></rect>
+        <rect x="90" y="70" width="20" height="28" fill="#f6dbe1"></rect>
+        <path d="M100 70 C 80 30, 50 40, 60 62 C 70 80, 95 72, 100 70Z" fill="#a3455f"></path>
+        <path d="M100 70 C 120 30, 150 40, 140 62 C 130 80, 105 72, 100 70Z" fill="#a3455f"></path>
+      </g>
+    </svg>
+    <div class="hint">tap the gift to open</div>
+  </section>
+
+  <!-- Scene 2: Greeting -->
+  <section class="scene" id="scene-greeting">
+    <div class="eyebrow">today is a special day</div>
+    <div class="display" id="greeting-title">Happy Birthday,<span id="greeting-name">Cecel</span></div>
+    <div class="sub" id="greeting-sub">semoga hari ini terasa sedikit lebih istimewa dari hari-hari lainnya.</div>
+    <button class="heart-btn" id="heart-btn">&#10084;</button>
+  </section>
+
+  <!-- Scene 3: Candle -->
+  <section class="scene" id="scene-candle">
+    <div class="eyebrow">make a wish</div>
+    <div class="display" style="font-size:30px;">Blow The Candle</div>
+    <svg class="cake" id="cake" viewBox="0 0 200 190">
+      <ellipse class="smoke" cx="100" cy="55" rx="4" ry="10" fill="#d9c9cd"></ellipse>
+      <g class="flame">
+        <path d="M100 40 C 92 55, 92 68, 100 74 C 108 68, 108 55, 100 40Z" fill="#f3b13c"></path>
+        <path d="M100 52 C 96 60, 96 66, 100 70 C 104 66, 104 60, 100 52Z" fill="#fff2c9"></path>
+      </g>
+      <rect x="95" y="74" width="10" height="34" rx="2" fill="#f3d3da"></rect>
+      <ellipse cx="100" cy="108" rx="70" ry="18" fill="#fdf1f2"></ellipse>
+      <rect x="30" y="108" width="140" height="18" fill="#fdf1f2"></rect>
+      <path d="M28 122 C 28 150, 172 150, 172 122 L172 150 C 172 170, 28 170, 28 150 Z" fill="#c65d7b"></path>
+      <rect x="28" y="122" width="144" height="30" fill="#c65d7b"></rect>
+      <ellipse cx="100" cy="122" rx="72" ry="10" fill="#d97b96"></ellipse>
+    </svg>
+    <div class="hint">tap the candle to make a wish</div>
+  </section>
+
+  <!-- Scene 4: Wish cycling -->
+  <section class="scene" id="scene-wish">
+    <div class="eyebrow">take a moment</div>
+    <div class="display wish-text" id="wish-text">good things are coming</div>
+  </section>
+
+  <!-- Scene 5: Memories -->
+  <section class="scene" id="scene-memories">
+    <div class="eyebrow">little memories</div>
+    <div class="sub" style="margin-top:6px;">beberapa hal yang layak untuk dikenang.</div>
+    <div class="memories-track" id="memories-track"></div>
+    <button class="next-btn" id="memories-next">lanjut</button>
+  </section>
+
+  <!-- Scene 6: Letter -->
+  <section class="scene" id="scene-letter">
+    <div class="letter-label">a little letter for you</div>
+    <div class="letter-card">
+      <div class="letter-body" id="letter-body"></div>
+      <div class="letter-sign" id="letter-sign">with love, —</div>
+    </div>
+    <button class="restart-btn" id="restart-btn">start again</button>
+  </section>
+
+  <!-- Music controls -->
+  <button id="music-toggle" title="play/pause music">
+    <svg id="music-icon-note" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+  </button>
+  <button id="music-settings-toggle" title="pengaturan lagu">&#9881;</button>
+
+  <div id="music-panel">
+    <h4>Pengaturan Lagu</h4>
+    <div class="song-name" id="song-name">memuat lagu...</div>
+    <label>Volume</label>
+    <input type="range" id="volume-range" min="0" max="100" value="60">
+    <div class="row">
+      <span>Putar otomatis saat kado dibuka</span>
+      <label class="switch">
+        <input type="checkbox" id="autoplay-toggle" checked>
+        <span class="track"></span>
+      </label>
+    </div>
+    <button class="close-panel" id="close-panel">selesai</button>
+  </div>
+
+  <div class="footer-tag">made with love</div>
+</div>
+
+<audio id="bg-audio" loop></audio>
+
+<script>
+/* ======= EDIT DI SINI UNTUK PERSONALISASI ======= */
+const CONFIG = {
+  name: "Cecel",
+  greetingSub: "semoga hari ini terasa sedikit lebih istimewa dari hari-hari lainnya.",
+  wishes: ["good things are coming", "let it come true"],
+  // Taruh file lagu di folder assets/audio/, lalu tulis nama filenya di sini.
+  music: "celcel.mp3",
+  // Taruh foto di folder assets/photos/, lalu tulis nama filenya di sini.
+  photos: [
+    { src: "P1.jpeg", caption: "" },
+    { src: "P2.jpeg", caption: "" },
+    { src: "P3.jpeg", caption: "" }
+  ],
+  letter: "terima kasih sudah menjadi seseorang yang artinya lebih dari kata-kata. di hari spesialmu ini, semoga kamu selalu bahagia dan semua harapanmu terwujudHappy birthday, Cecel! 🥳🤍 Terima kasih sudah selalu jadi orang baik dan sudah hadir dengan segala cerita dan kebaikanmu. Semoga kamu selalu bahagia, sehat, dan semua hal baik datang ke kamu. 🫶🏻.",
+  signature: "Sahabat Cecel, —"
+};
+/* ================================================= */
+
+document.getElementById('greeting-name').textContent = CONFIG.name + '.';
+document.getElementById('greeting-sub').textContent = CONFIG.greetingSub;
+document.getElementById('letter-sign').textContent = CONFIG.signature;
+
+const scenes = ['scene-gift','scene-greeting','scene-candle','scene-wish','scene-memories','scene-letter'];
+let sceneIndex = 0;
+
+function goTo(name){
+  const current = document.getElementById(scenes[sceneIndex]);
+  const targetIdx = scenes.indexOf(name);
+  const target = document.getElementById(name);
+  current.classList.add('leaving');
+  current.classList.remove('active');
+  setTimeout(()=>{ current.classList.remove('leaving'); }, 600);
+  target.classList.add('active');
+  sceneIndex = targetIdx;
+}
+
+/* ---- Scene 1: Gift ---- */
+const giftIcon = document.getElementById('gift-icon');
+giftIcon.addEventListener('click', () => {
+  if(giftIcon.classList.contains('opened')) return;
+  giftIcon.classList.add('opened');
+  tryAutoplayMusic();
+  setTimeout(() => {
+    goTo('scene-greeting');
+    burstConfetti();
+  }, 500);
+});
+
+/* ---- Scene 2: Greeting ---- */
+document.getElementById('heart-btn').addEventListener('click', () => {
+  goTo('scene-candle');
+});
+
+/* ---- Scene 3: Candle ---- */
+const cake = document.getElementById('cake');
+cake.addEventListener('click', () => {
+  if(cake.classList.contains('blown')) return;
+  cake.classList.add('blown');
+  setTimeout(() => {
+    goTo('scene-wish');
+    playWishCycle();
+  }, 700);
+});
+
+/* ---- Scene 4: Wish cycle ---- */
+function playWishCycle(){
+  const el = document.getElementById('wish-text');
+  let i = 0;
+  el.textContent = CONFIG.wishes[0];
+  el.classList.remove('blur');
+  const interval = setInterval(() => {
+    el.classList.add('blur');
+    setTimeout(() => {
+      i++;
+      if(i < CONFIG.wishes.length){
+        el.textContent = CONFIG.wishes[i];
+        el.classList.remove('blur');
+      } else {
+        clearInterval(interval);
+        setTimeout(() => {
+          buildMemories();
+          goTo('scene-memories');
+        }, 500);
+      }
+    }, 700);
+  }, 2200);
+}
+
+/* ---- Scene 5: Memories ---- */
+function buildMemories(){
+  const track = document.getElementById('memories-track');
+  track.innerHTML = '';
+  CONFIG.photos.forEach((p, idx) => {
+    const card = document.createElement('div');
+    card.className = 'polaroid';
+    card.innerHTML = `
+      <div class="polaroid-photo" id="photo-slot-${idx}">
+        ${p.src ? `<img src="${p.src}" onerror="this.parentElement.textContent='PHOTO';this.parentElement.classList.add('missing');">` : 'PHOTO'}
+      </div>
+      <div class="polaroid-caption">${p.caption || '&#10022;&#10022;&#10022;'}</div>
+    `;
+    track.appendChild(card);
+  });
+}
+document.getElementById('memories-next').addEventListener('click', () => {
+  goTo('scene-letter');
+  typeLetter();
+});
+
+/* ---- Scene 6: Letter ---- */
+function typeLetter(){
+  const el = document.getElementById('letter-body');
+  el.innerHTML = '<span class="cursor">&nbsp;</span>';
+  let i = 0;
+  const text = CONFIG.letter;
+  const interval = setInterval(() => {
+    i++;
+    el.innerHTML = text.slice(0, i) + '<span class="cursor">&nbsp;</span>';
+    if(i >= text.length) clearInterval(interval);
+  }, 28);
+}
+document.getElementById('restart-btn').addEventListener('click', () => {
+  giftIcon.classList.remove('opened');
+  cake.classList.remove('blown');
+  goTo('scene-gift');
+});
+
+/* ---- Confetti ---- */
+function burstConfetti(){
+  const colors = ['#c65d7b','#f2a5b8','#f7d2da','#a3455f','#fff'];
+  const wrap = document.getElementById('stage-wrap');
+  for(let i=0; i<40; i++){
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random()*100 + '%';
+    piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+    piece.style.animationDuration = (2.5 + Math.random()*2) + 's';
+    piece.style.transform = `rotate(${Math.random()*360}deg)`;
+    wrap.appendChild(piece);
+    setTimeout(() => piece.remove(), 5000);
+  }
+}
+
+/* ---- Music settings ---- */
+const audio = document.getElementById('bg-audio');
+const musicToggle = document.getElementById('music-toggle');
+const settingsToggle = document.getElementById('music-settings-toggle');
+const panel = document.getElementById('music-panel');
+const songName = document.getElementById('song-name');
+const volumeRange = document.getElementById('volume-range');
+const autoplayToggle = document.getElementById('autoplay-toggle');
+let musicReady = false;
+
+audio.volume = 0.6;
+
+if(CONFIG.music){
+  audio.src = CONFIG.music;
+  audio.addEventListener('canplaythrough', () => {
+    musicReady = true;
+    songName.textContent = CONFIG.music.split('/').pop();
+  }, { once: true });
+  audio.addEventListener('error', () => {
+    songName.textContent = 'file lagu tidak ditemukan di ' + CONFIG.music;
+  });
+}
+
+volumeRange.addEventListener('input', (e) => {
+  audio.volume = e.target.value / 100;
+});
+
+function tryAutoplayMusic(){
+  if(musicReady && autoplayToggle.checked){
+    audio.play().then(()=> setIcon(true)).catch(()=>{});
+  }
+}
+
+function setIcon(playing){
+  musicToggle.innerHTML = playing
+    ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14"></rect><rect x="14" y="5" width="4" height="14"></rect></svg>'
+    : '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>';
+}
+
+musicToggle.addEventListener('click', () => {
+  if(!musicReady){
+    panel.classList.add('open');
+    return;
+  }
+  if(audio.paused){
+    audio.play(); setIcon(true);
+  } else {
+    audio.pause(); setIcon(false);
+  }
+});
+
+settingsToggle.addEventListener('click', () => {
+  panel.classList.toggle('open');
+});
+document.getElementById('close-panel').addEventListener('click', () => {
+  panel.classList.remove('open');
+});
+</script>
+</body>
+</html>
